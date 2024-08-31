@@ -5,11 +5,8 @@ using System.Diagnostics;
 
 namespace ncaa_matchday.Controllers
 {
-    public class HomeController(IConfiguration config) : Controller
+    public class HomeController : Controller
     {
-        private readonly string link = config["Links:Base"];
-        private readonly List<string> sports = config.GetSection("Sports").Get<List<string>>();
-
         public IActionResult Index()
         {
             return View(new HomeList().Leagues);

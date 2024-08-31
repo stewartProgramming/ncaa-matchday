@@ -2,18 +2,18 @@
 {
     public class HomeList
     {
-        public List<League> Leagues
-        {
-            get { return leagues; }
-            set { leagues = value; }
-        }
-
         public class League
         {
             public required string Sport { get; set; }
             public required string Division { get; set; }
             public required string Link { get; set; }
             public string? Sex { get; set; }
+        }
+
+        public List<League> Leagues
+        {
+            get { return leagues; }
+            set { leagues = value; }
         }
 
         public List<League> leagues =

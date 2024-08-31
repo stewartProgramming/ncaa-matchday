@@ -21,39 +21,14 @@
                 {
                     <tr>
                         <td style="text-indent:25px">
-                            <a asp-controller="League" asp-action="Matches" asp-route-link="@league.Link" style="text-decoration:none;color:inherit">
+                            <a asp-controller="League" asp-action="Matches"
+                                asp-route-leagueLink="@league.Link" style="text-decoration:none;color:inherit">
                                 @league.Division
                             </a>
-                        </td>
+                        </td> 
                     </tr>
-@*                     <a asp-controller="League" asp-action="Matches" asp-route-leagueLink="@league.Link">
-                        <tr><td style="text-indent:25px">@league.Division</td></tr>
-                    </a> *@
                 }
             }
         }
-
-        @* <table>
-    @if (sport.Sex != null)
-    {
-    <tr><th>@sport.Sport</th></tr>
-    foreach (var sex in sport.Sex)
-    {
-    <tr><td style="text-indent:12.5px"><b>@sex</b></td></tr>
-    foreach (var division in sport.Division)
-    {
-    <tr><td style="text-indent:25px">@division</td></tr>
-    }
-    }
-    }
-    else
-    {
-    <tr><th>@sport.Sport</th></tr>
-    @foreach (var division in sport.Divisions)
-    {
-    <tr><td style="text-indent:25px">@division</td></tr>
-    }
-    }
-    </table> *@
     }
 </table>

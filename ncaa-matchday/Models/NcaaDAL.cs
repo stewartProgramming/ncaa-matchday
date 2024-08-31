@@ -102,7 +102,7 @@ namespace ncaa_matchday.Models
             return matchesOfTheDay;
         }
 
-        private static string GetFootballWeek(DateTime date)
+        public static string GetFootballWeek(DateTime date)
         {
             if (date > DateTime.Parse("2024-08-24") && date < DateTime.Parse("2024-09-03"))
                 return "01";
