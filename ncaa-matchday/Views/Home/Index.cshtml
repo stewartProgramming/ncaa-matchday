@@ -1,8 +1,59 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using static ncaa_matchday.Models.HomeModels.HomeList
+@model List<League>
+
+@{
+    ViewData["Title"] = "NCAA Matchday";
+    var sports = Model.Select(x => x.Sport).Distinct();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<table>
+    @foreach (var sport in sports)
+    {
+        <tr><th>@sport</th></tr>
+
+        var sportsLeagues = Model.Where(x => x.Sport == sport);
+        if (!sportsLeagues.Where(x => x.Sex == null).Any())
+        {
+            foreach (var sex in sportsLeagues.Select(x => x.Sex).Distinct())
+            {
+                <tr><td style="text-indent:12.5px"><b>@sex</b></td></tr>
+                foreach (var league in sportsLeagues.Where(x => x.Sex == sex))
+                {
+                    <tr>
+                        <td style="text-indent:25px">
+                            <a asp-controller="League" asp-action="Matches" asp-route-link="@league.Link" style="text-decoration:none;color:inherit">
+                                @league.Division
+                            </a>
+                        </td>
+                    </tr>
+@*                     <a asp-controller="League" asp-action="Matches" asp-route-leagueLink="@league.Link">
+                        <tr><td style="text-indent:25px">@league.Division</td></tr>
+                    </a> *@
+                }
+            }
+        }
+
+        @* <table>
+    @if (sport.Sex != null)
+    {
+    <tr><th>@sport.Sport</th></tr>
+    foreach (var sex in sport.Sex)
+    {
+    <tr><td style="text-indent:12.5px"><b>@sex</b></td></tr>
+    foreach (var division in sport.Division)
+    {
+    <tr><td style="text-indent:25px">@division</td></tr>
+    }
+    }
+    }
+    else
+    {
+    <tr><th>@sport.Sport</th></tr>
+    @foreach (var division in sport.Divisions)
+    {
+    <tr><td style="text-indent:25px">@division</td></tr>
+    }
+    }
+    </table> *@
+    }
+</table>

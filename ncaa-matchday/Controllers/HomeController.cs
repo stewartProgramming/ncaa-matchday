@@ -1,21 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using ncaa_matchday.Models;
+using ncaa_matchday.Models.HomeModels;
 using System.Diagnostics;
 
 namespace ncaa_matchday.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController(IConfiguration config) : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
+        private readonly string link = config["Links:Base"];
+        private readonly List<string> sports = config.GetSection("Sports").Get<List<string>>();
 
         public IActionResult Index()
         {
-            return View();
+            return View(new HomeList().Leagues);
         }
 
         public IActionResult Privacy()
