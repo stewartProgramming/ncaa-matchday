@@ -1,108 +1,53 @@
-﻿using Newtonsoft.Json;
-
-namespace ncaa_matchday.Models
+﻿namespace ncaa_matchday.Models
 {
     public class NcaaDAL()
     {
-        public static async Task<List<HomeMatches>> GetMatchesByDateAsync
-            (List<string> sports, string link, DateTime? date)
+        public static async Task<string> CallBaseNCAA_API(string link)
         {
-            date ??= DateTime.Now;
-            string dateString = string.Empty;
             HttpClient client = new();
-            List<HomeMatches> matchesOfTheDay = [];
 
-            var sportsList = sports.Select(x => x.Split('/').First()).Distinct();
-            foreach (string sport in sportsList)
+            HttpRequestMessage request = new()
             {
-                var sportName = string.Empty;
-                if (sport.Contains('-'))
-                {
-                    var sportNameSplit = sport.Split('-');
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(link)
+            };
 
-                    sportName = $"{char.ToUpper(sportNameSplit[0][0]) + sportNameSplit[0][1..]}-" +
-                        $"{char.ToUpper(sportNameSplit[1][0]) + sportNameSplit[1][1..]}";
-                }
-                else
-                {
-                    sportName = char.ToUpper(sport[0]) + sport[1..];
-                }
-
-                var newHomeMatch = new HomeMatches
-                {
-                    Sport = sportName,
-                    DivisionMatches = []
-                };
-
-                var sportDivisions = sports.Where(x => x.Contains(sport)).Select(x => x.Split('/')[1]).Distinct();
-                foreach (var division in sportDivisions)
-                {
-                    
-                    ///scoreboard/football/fbs/2024/01/scoreboard.json
-                    string uriString = string.Empty;
-                    if (sport.Contains("football"))
-                    {
-                        var footballWeek = GetFootballWeek((DateTime)date);
-
-                        if (footballWeek == null)
-                            continue;
-                        else
-                            uriString = $"{link}scoreboard/football/{division}/{date.Value.Year}/{footballWeek}/scoreboard.json";
-                    }
-                    else
-                    {
-                        dateString = $"/{date.Value.Year}/{date.Value.Month:D2}/{date.Value.Day}/";
-                        uriString = $"{link}scoreboard/{sport}/{division}{dateString}scoreboard.json";
-                    }
-
-                    HttpRequestMessage request = new()
-                    {
-                        Method = HttpMethod.Get,
-                        RequestUri = new Uri(uriString),
-                    };
-
-                    HttpResponseMessage response = await client.SendAsync(request);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var stringResponse = await response.Content.ReadAsStringAsync();
-                        var stringResponseConverted = JsonConvert
-                            .DeserializeObject<ScoreboardResponse>(stringResponse);
-                        if (stringResponseConverted != null && stringResponseConverted.Games != null)
-                        {
-                            var divisionMatchesToAdd = stringResponseConverted.Games
-                                .Select(x => x.game)
-                                .Where(x => x != null && x.StartDate != null && DateTime.Parse(x.StartDate).Date == DateTime.Today)
-                                .ToList();
-
-                            if (divisionMatchesToAdd.Count != 0)
-                            {
-                                var newDivision = new HomeMatches.Divisions()
-                                {
-                                    Division = division,
-                                    Matches = divisionMatchesToAdd,
-                                };
-
-                                newHomeMatch.DivisionMatches.Add(newDivision);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-
-                if (newHomeMatch.DivisionMatches.Select(x => x.Matches).Any())
-                {
-                    matchesOfTheDay.Add(newHomeMatch);
-                }
-
+            HttpResponseMessage response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
             }
-
-            return matchesOfTheDay;
+            else
+            {
+                return "null";
+            }
         }
 
-        public static string GetFootballWeek(DateTime date)
+        public static async Task<string> CallRapidNCAA_API(string link, string key, string host)
+        {
+            HttpClient client = new();
+            HttpRequestMessage request = new()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(link),
+                Headers =
+                {
+                    { "x-rapidapi-key", key },
+                    { "x-rapidapi-host", host }
+                }
+            };
+            HttpResponseMessage response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                return "null";
+            }
+        }
+
+        public static string? GetFootballWeek(DateTime date)
         {
             if (date > DateTime.Parse("2024-08-24") && date < DateTime.Parse("2024-09-03"))
                 return "01";

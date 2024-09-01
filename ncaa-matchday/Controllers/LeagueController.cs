@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.Mvc;
 using ncaa_matchday.Models;
+using ncaa_matchday.Models.LeagueModels;
 using Newtonsoft.Json;
 using System.Diagnostics;
 
@@ -14,87 +16,69 @@ namespace ncaa_matchday.Controllers
 
         public async Task<IActionResult> Matches(string leagueLink, DateTime? date)
         {
+            date ??= DateTime.Now.AddDays(-1);
+
+            string uriString = string.Empty;
+            string dateString = string.Empty;
             string? link = config["Links:Base"];
+            string division = leagueLink.Split('/').Last();
+            string sport = leagueLink.Split('/').First();
+            if (sport.Contains('-'))
+                sport = sport.Split('-').First();
+            sport = char.ToUpper(sport[0]) + sport[1..];
+
             bool leagueIsFootball = leagueLink.Contains("football");
 
-            if (link == null)
+            if (leagueIsFootball == true)
             {
-                return View(
-                    new ErrorViewModel
-                    {
-                        RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-                    });
+                var footballWeek = NcaaDAL.GetFootballWeek((DateTime)date);
+
+                dateString = date.Value.Year.ToString();
+                dateString = $"{date.Value.Year}/{footballWeek}";
             }
             else
             {
-                date ??= DateTime.Now;
+                dateString = $"{date.Value.Year}/{date.Value.Month:D2}/{date.Value.Day:D2}";
+            }
 
-                string uriString = string.Empty;
-                string dateString = string.Empty;
-
-                if (leagueIsFootball == true)
+            var matches = await NcaaDAL.CallBaseNCAA_API($"{link}/scoreboard/{leagueLink}/{dateString}/scoreboard.json");
+            if (matches != null)
+            {
+                var stringResponseConverted = JsonConvert.DeserializeObject<ScoreboardResponse>(matches);
+                if (stringResponseConverted != null && stringResponseConverted.Games != null)
                 {
-                    var footballWeek = NcaaDAL.GetFootballWeek((DateTime)date);
+                    var matchesModelToReturn = new Matches
+                    {
+                        Sport = sport,
+                        Division = division.ToUpper(),
+                        Games = stringResponseConverted.Games.Select(x => x.game).ToList()
+                    };
 
-                    dateString = date.Value.Year.ToString();
-                    uriString = $"{link}scoreboard/{leagueLink}/{dateString}/scoreboard.json";
+                    if (leagueIsFootball == true)
+                    {
+                        matchesModelToReturn.Games = matchesModelToReturn.Games
+                            .Where(x => x != null && x.StartDate != null && DateTime.Parse(x.StartDate).Date == DateTime.Today)
+                            .ToList();
+                    }
+
+                    return View(matchesModelToReturn);
                 }
                 else
                 {
-                    dateString = $"{date.Value.Year}/{date.Value.Month:D2}/{date.Value.Day}";
-                    uriString = $"{link}scoreboard/{leagueLink}/{dateString}/scoreboard.json";
-                }
-
-                HttpClient client = new();
-
-                HttpRequestMessage request = new()
-                {
-                    Method = HttpMethod.Get,
-                    RequestUri = new Uri($"{link}scoreboard/{leagueLink}/{dateString}/scoreboard.json")
-                };
-
-                HttpResponseMessage response = await client.SendAsync(request);
-                if (response.IsSuccessStatusCode)
-                {
-                    string stringResponse = await response.Content.ReadAsStringAsync();
-                    var stringResponseConverted = JsonConvert.DeserializeObject<ScoreboardResponse>(stringResponse);
-                    if (stringResponseConverted != null && stringResponseConverted.Games != null)
+                    return View(new Matches()
                     {
-                        var gamesToReturn = new List<Game2?>();
-                        if (leagueIsFootball == true)
-                        {
-                            gamesToReturn = stringResponseConverted.Games
-                                .Select(x => x.game)
-                                .Where(x => x != null && x.StartDate != null && DateTime.Parse(x.StartDate).Date == DateTime.Today)
-                                .ToList();
-                        }
-                        else
-                        {
-                            gamesToReturn = stringResponseConverted.Games
-                                .Select(x => x.game)
-                                .Where(x => x != null)
-                                .ToList();
-                        }
-
-                        return View(gamesToReturn);
-                    }
-                    else
-                    {
-                        return View(
-                        new ErrorViewModel
-                        {
-                            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-                        });
-                    }
-                }
-                else
-                {
-                    return View(
-                    new ErrorViewModel
-                    {
-                        RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+                        Sport = sport,
+                        Division = division.ToUpper()
                     });
                 }
+            }
+            else
+            {
+                return View(new Matches()
+                {
+                    Sport = sport,
+                    Division = division.ToUpper()
+                });
             }
         }
     }

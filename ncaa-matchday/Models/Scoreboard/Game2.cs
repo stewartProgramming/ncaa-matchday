@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using ncaa_matchday.Models.Scoreboard;
+using System.Text.Json.Serialization;
 
 namespace ncaa_matchday.Models
 {
@@ -8,7 +9,7 @@ namespace ncaa_matchday.Models
         public string? GameID { get; set; }
 
         [JsonPropertyName("away")]
-        public Away? Away { get; set; }
+        public ScoreboardTeam? Away { get; set; }
 
         [JsonPropertyName("finalMessage")]
         public string? FinalMessage { get; set; }
@@ -29,7 +30,7 @@ namespace ncaa_matchday.Models
         public string? Network { get; set; }
 
         [JsonPropertyName("home")]
-        public Home? Home { get; set; }
+        public ScoreboardTeam? Home { get; set; }
 
         [JsonPropertyName("liveVideoEnabled")]
         public bool? LiveVideoEnabled { get; set; }

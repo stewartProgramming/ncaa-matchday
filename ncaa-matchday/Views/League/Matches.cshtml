@@ -1,0 +1,82 @@
+﻿@using ncaa_matchday.Models.LeagueModels
+@using ncaa_matchday.Models.Scoreboard
+@model Matches
+
+@{
+    ViewData["Title"] = $"NCAA {Model.Division} {Model.Sport} Matches of the Day";
+    string logoLink = "https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/";
+}
+
+<table>
+    @if (Model.Games != null)
+    {
+        foreach (var game in Model.Games)
+        {
+            <tr style="text-align:center">
+                <td style="padding-right:25px">
+                    <p style="text-align:right">
+                        @DateTime.Parse(game.StartDate).ToString("MM/dd/yy").TrimStart('0')<br />
+                        @if (game.FinalMessage == "FINAL")
+                        {
+                            @("FT")
+                        }
+                        else
+                        {
+                            @game.StartTime.TrimStart('0')
+                        }
+                    </p>
+                </td>
+                <td>
+                    <a asp-controller="Match" asp-action="Details" asp-route-gameId="@game.Url.Split('/').Last()">
+                        <p style="text-align:left">
+                            @{
+                                ScoreboardTeam? homeTeam = game.Home;
+                                ScoreboardTeam? awayTeam = game.Away;
+                            }
+
+                            @if (!string.IsNullOrEmpty(homeTeam.Score) && int.Parse(homeTeam.Score) > int.Parse(awayTeam.Score))
+                            {
+                                <img src="@($"{logoLink}{homeTeam.Names.Seo}.svg")" height="20" style="float:left" />
+                                <b>@($"{homeTeam.Names.Short}")</b>
+                                <b style="float:right;padding-left:200px">
+                                    @homeTeam.Score
+                                </b>
+                            }
+                            else
+                            {
+                                <img src="@($"{logoLink}{homeTeam.Names.Seo}.svg")" height="20" style="float:left" />
+                                @if (string.IsNullOrEmpty(homeTeam.Score))
+                                {
+                                    homeTeam.Score = "-";
+                                }
+
+                                @($"{homeTeam.Names.Short}")
+                                <span style="float:right;padding-left:200px">@homeTeam.Score</span>
+                            }<br />
+
+                            @if (!string.IsNullOrEmpty(awayTeam.Score) && int.Parse(homeTeam.Score) < int.Parse(awayTeam.Score))
+                            {
+                                <img src="@($"{logoLink}{awayTeam.Names.Seo}.svg")" height="20" style="float:left" />
+                                <b>@($"{awayTeam.Names.Short}")</b>
+                                <b style="float:right;padding-left:200px">
+                                    @awayTeam.Score
+                                </b>
+                            }
+                            else
+                            {
+                                <img src="@($"{logoLink}{awayTeam.Names.Seo}.svg")" height="20" style="float:left" />
+                                @if (string.IsNullOrEmpty(awayTeam.Score))
+                                {
+                                    awayTeam.Score = "-";
+                                }
+
+                                @($"{awayTeam.Names.Short}")
+                                <span style="float:right;padding-left:200px">@awayTeam.Score</span>
+                            }
+                        </p>
+                        </a>
+                </td>
+            </tr>
+        }
+    }
+</table>
