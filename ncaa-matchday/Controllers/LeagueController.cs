@@ -38,7 +38,7 @@ namespace ncaa_matchday.Controllers
             }
             else
             {
-                dateString = $"{date.Value.Year}/{date.Value.Month:D2}/{date.Value.Day}";
+                dateString = $"{date.Value.Year}/{date.Value.Month:D2}/{date.Value.Day:D2}";
             }
 
             var matches = await NcaaDAL.CallBaseNCAA_API($"{link}/scoreboard/{leagueLink}/{dateString}/scoreboard.json");
