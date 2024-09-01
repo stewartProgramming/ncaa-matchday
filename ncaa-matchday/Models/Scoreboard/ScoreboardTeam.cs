@@ -1,9 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ncaa_matchday.Models
+namespace ncaa_matchday.Models.Scoreboard
 {
-    // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
-    public class Away
+    public class ScoreboardTeam
     {
         [JsonPropertyName("score")]
         public string? Score { get; set; }
