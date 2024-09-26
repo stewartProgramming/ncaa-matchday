@@ -5,10 +5,10 @@ namespace ncaa_matchday.Models.Scoreboard
     public class ScoreboardTeam
     {
         [JsonPropertyName("score")]
-        public string? Score { get; set; }
+        public required string Score { get; set; }
 
         [JsonPropertyName("names")]
-        public Names? Names { get; set; }
+        public required Names Names { get; set; }
 
         [JsonPropertyName("winner")]
         public bool? Winner { get; set; }

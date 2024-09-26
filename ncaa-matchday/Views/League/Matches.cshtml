@@ -1,82 +1,155 @@
 ﻿@using ncaa_matchday.Models.LeagueModels
 @using ncaa_matchday.Models.Scoreboard
-@model Matches
+@model List<Matches>
 
 @{
-    ViewData["Title"] = $"NCAA {Model.Division} {Model.Sport} Matches of the Day";
+    ViewData["Title"] = $"NCAA {Model.Select(x => x.Sport).Distinct().First()} Matches of the Day";
     string logoLink = "https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/";
 }
 
-<table>
-    @if (Model.Games != null)
+<div class="dateForm" style="text-align:center">
+    <form asp-controller="League" asp-action="Matches" name="Date" id="date" asp-route-leagueLink="@Model.Select(x => x.Sport).Distinct().First()">
+        <input type="date" name="date" id="date" onchange="Date.submit().toString()" style="align-content:center" />
+    </form>
+</div>
+
+
+    @{
+        var sexes = Model.Select(x => x.Sex).Distinct();
+        var divisions = Model.Select(x => x.Division).Distinct();
+    }
+
+    @foreach (string sex in sexes)
     {
-        foreach (var game in Model.Games)
+        @foreach (string division in divisions)
         {
-            <tr style="text-align:center">
-                <td style="padding-right:25px">
-                    <p style="text-align:right">
-                        @DateTime.Parse(game.StartDate).ToString("MM/dd/yy").TrimStart('0')<br />
-                        @if (game.FinalMessage == "FINAL")
-                        {
-                            @("FT")
-                        }
+        <button type="button" class="collapsible">
+            @(sex) - @(division[0] + division.Split(' ').Last())
+        </button>
+        <div class="content">
+            <table align="center">
+                <tr>
+                    <td style="text-align:center;">
+                    </td>
+                </tr>
+            @foreach (var match in Model.Where(x => x.Division == division && x.Sex == sex))
+            {
+                if (match.Games != null)
+                {
+
+                    foreach (var game in match.Games)
+                    {
+                        ScoreboardTeam homeTeam = game.Home;
+                        string homeLogoLink = logoLink + homeTeam.Names.Seo + ".svg";
+                        ScoreboardTeam awayTeam = game.Away;
+                        string awayLogoLink = logoLink + awayTeam.Names.Seo + ".svg";
+
+                        int homeScore;
+                        if (!string.IsNullOrEmpty(homeTeam.Score) && int.TryParse(homeTeam.Score, out int homeResultParsed) == true)
+                            homeScore = homeResultParsed;
                         else
-                        {
-                            @game.StartTime.TrimStart('0')
-                        }
-                    </p>
-                </td>
-                <td>
-                    <a asp-controller="Match" asp-action="Details" asp-route-gameId="@game.Url.Split('/').Last()">
-                        <p style="text-align:left">
-                            @{
-                                ScoreboardTeam? homeTeam = game.Home;
-                                ScoreboardTeam? awayTeam = game.Away;
-                            }
+                            homeScore = 0;
 
-                            @if (!string.IsNullOrEmpty(homeTeam.Score) && int.Parse(homeTeam.Score) > int.Parse(awayTeam.Score))
-                            {
-                                <img src="@($"{logoLink}{homeTeam.Names.Seo}.svg")" height="20" style="float:left" />
-                                <b>@($"{homeTeam.Names.Short}")</b>
-                                <b style="float:right;padding-left:200px">
-                                    @homeTeam.Score
-                                </b>
-                            }
-                            else
-                            {
-                                <img src="@($"{logoLink}{homeTeam.Names.Seo}.svg")" height="20" style="float:left" />
-                                @if (string.IsNullOrEmpty(homeTeam.Score))
-                                {
-                                    homeTeam.Score = "-";
-                                }
+                        int awayScore;
+                        if (!string.IsNullOrEmpty(awayTeam.Score) && int.TryParse(awayTeam.Score, out int awayResultParsed) == true)
+                            awayScore = awayResultParsed;
+                        else
+                            awayScore = 0;
 
-                                @($"{homeTeam.Names.Short}")
-                                <span style="float:right;padding-left:200px">@homeTeam.Score</span>
-                            }<br />
+                        string startTime = game.StartTime.TrimStart('0');
+                        if (game.FinalMessage == "FINAL" || game.GameState == "final")
+                            startTime = "FT";
+                        else
+                            startTime = startTime.Split(' ').First();
 
-                            @if (!string.IsNullOrEmpty(awayTeam.Score) && int.Parse(homeTeam.Score) < int.Parse(awayTeam.Score))
-                            {
-                                <img src="@($"{logoLink}{awayTeam.Names.Seo}.svg")" height="20" style="float:left" />
-                                <b>@($"{awayTeam.Names.Short}")</b>
-                                <b style="float:right;padding-left:200px">
-                                    @awayTeam.Score
-                                </b>
-                            }
-                            else
-                            {
-                                <img src="@($"{logoLink}{awayTeam.Names.Seo}.svg")" height="20" style="float:left" />
-                                @if (string.IsNullOrEmpty(awayTeam.Score))
-                                {
-                                    awayTeam.Score = "-";
-                                }
+                        string gameDate = DateTime.Parse(game.StartDate).ToString("MM/dd/yy").TrimStart('0');
+                        string gameUrlNum = game.Url.Split('/').Last();
 
-                                @($"{awayTeam.Names.Short}")
-                                <span style="float:right;padding-left:200px">@awayTeam.Score</span>
-                            }
-                        </p>
-                        </a>
-                </td>
-            </tr>
+
+                        <tr>
+                            <td>
+                                <p style="text-align:center;padding-right:10px">
+                                    @gameDate<br />
+                                    @startTime
+                                </p>
+                            </td>
+                            <td>
+                                <a asp-controller="Match" asp-action="Details" asp-route-gameId="@gameUrlNum" style="text-decoration:none;color:black">
+                                    <p>
+                                        <img src="@homeLogoLink" height="25" />
+                                        @if (homeScore > awayScore)
+                                        {
+                                            <b>
+                                                @homeTeam.Names.Short
+                                                <span style="float:right;padding-left:25px">@homeTeam.Score</span>
+                                            </b>
+                                        }
+                                        else
+                                        {
+                                            @homeTeam.Names.Short
+                                            <span style="float:right;padding-left:25px">@homeTeam.Score</span>
+                                        }
+                                        <br />
+                                        <img src="@awayLogoLink" height="25" />
+                                        @if (awayScore > homeScore)
+                                        {
+                                            <b>
+                                                @awayTeam.Names.Short
+                                                <span style="float:right;padding-left:25px">@awayTeam.Score</span>
+                                            </b>
+                                        }
+                                        else
+                                        {
+                                            @awayTeam.Names.Short
+                                            <span style="float:right;padding-left:25px">@awayTeam.Score</span>
+                                        }
+                                    </p>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+            </table>
+        </div>
+            
         }
     }
-</table>
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+          coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+              content.style.display = "none";
+            } else {
+              content.style.display = "block";
+            }
+          });
+        }
+    </script>
+    <style>
+        .collapsible{
+            color: black;
+            background-color: transparent;
+            cursor: pointer;
+            padding: 5px;
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            text-align: center;
+        }
+        .active .collapsible:hover{
+            background-color: #555;
+        }
+        .content{
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: #f1f1f1;
+        }
+    </style>

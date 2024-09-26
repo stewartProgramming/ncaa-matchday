@@ -20,10 +20,7 @@ namespace ncaa_matchday.Controllers
             string? playByPlayResponse = await NcaaDAL.CallRapidNCAA_API($"{RapidApiLink}/game/playbyplay?id={gameId}", Key, Host);
             NCAA_PlayByPlay? playByPlayConverted = JsonConvert.DeserializeObject<NCAA_PlayByPlay?>(playByPlayResponse);
 
-            string? scoringString = await NcaaDAL.CallRapidNCAA_API($"{RapidApiLink}/team/scoring?id={gameId}", Key, Host);
-            NCAA_Scoring? scoringConverted = JsonConvert.DeserializeObject<NCAA_Scoring>(scoringString);
-
-            NCAA_Details matchDetails = new(gameInfoConverted, playByPlayConverted, scoringConverted);
+            NCAA_Details matchDetails = new(gameInfoConverted, playByPlayConverted);
 
             return View(matchDetails);
         }

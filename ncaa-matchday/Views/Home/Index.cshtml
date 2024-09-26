@@ -6,26 +6,34 @@
     var sports = Model.Select(x => x.Sport).Distinct();
 }
 
-<table>
-    @foreach (var sport in sports)
+<table align="center">
+    @foreach (string? sport in sports)
     {
-        <tr><th>@sport</th></tr>
+        <tr>
+            <th>
+                @sport
+            </th>
+        </tr>
 
-        var sportsLeagues = Model.Where(x => x.Sport == sport);
+        IEnumerable<League>? sportsLeagues = Model.Where(x => x.Sport == sport);
         if (!sportsLeagues.Where(x => x.Sex == null).Any())
         {
-            foreach (var sex in sportsLeagues.Select(x => x.Sex).Distinct())
+            foreach (string? sex in sportsLeagues.Select(x => x.Sex).Distinct())
             {
-                <tr><td style="text-indent:12.5px"><b>@sex</b></td></tr>
-                foreach (var league in sportsLeagues.Where(x => x.Sex == sex))
+                <tr>
+                    <td style="text-indent:12.5px">
+                        <b>@sex</b>
+                    </td>
+                </tr>
+
+                foreach (League? league in sportsLeagues.Where(x => x.Sex == sex))
                 {
                     <tr>
                         <td style="text-indent:25px">
-                            <a asp-controller="League" asp-action="Matches"
-                                asp-route-leagueLink="@league.Link" style="text-decoration:none;color:inherit">
+                            <a asp-controller="League" asp-action="Matches" asp-route-leagueLink="@league.Link" style="text-decoration:none;color:inherit">
                                 @league.Division
                             </a>
-                        </td> 
+                        </td>
                     </tr>
                 }
             }

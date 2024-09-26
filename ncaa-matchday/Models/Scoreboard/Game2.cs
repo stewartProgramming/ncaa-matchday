@@ -9,7 +9,7 @@ namespace ncaa_matchday.Models
         public string? GameID { get; set; }
 
         [JsonPropertyName("away")]
-        public ScoreboardTeam? Away { get; set; }
+        public required ScoreboardTeam Away { get; set; }
 
         [JsonPropertyName("finalMessage")]
         public string? FinalMessage { get; set; }
@@ -24,19 +24,19 @@ namespace ncaa_matchday.Models
         public string? ContestName { get; set; }
 
         [JsonPropertyName("url")]
-        public string? Url { get; set; }
+        public required string Url { get; set; }
 
         [JsonPropertyName("network")]
         public string? Network { get; set; }
 
         [JsonPropertyName("home")]
-        public ScoreboardTeam? Home { get; set; }
+        public required ScoreboardTeam Home { get; set; }
 
         [JsonPropertyName("liveVideoEnabled")]
         public bool? LiveVideoEnabled { get; set; }
 
         [JsonPropertyName("startTime")]
-        public string? StartTime { get; set; }
+        public required string StartTime { get; set; }
 
         [JsonPropertyName("startTimeEpoch")]
         public string? StartTimeEpoch { get; set; }
@@ -48,7 +48,7 @@ namespace ncaa_matchday.Models
         public string? GameState { get; set; }
 
         [JsonPropertyName("startDate")]
-        public string? StartDate { get; set; }
+        public required string StartDate { get; set; }
 
         [JsonPropertyName("currentPeriod")]
         public string? CurrentPeriod { get; set; }
