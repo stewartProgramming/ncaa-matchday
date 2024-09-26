@@ -13,183 +13,226 @@
     );
 
     Team? awayTeam = new Team(
-        Model.GameInfo.teams.Where(x => x.teamId.ToString() == Model.GameInfo.meta.teams[1].id).First(),
+        Model.GameInfo.teams.Where(x => x.teamId.ToString() == Model.GameInfo.meta.teams[1].id).First(), 
         Model.GameInfo.meta.teams[1]
     );
 
+    string score = homeTeam.playerTotals.goals + " - " + awayTeam.playerTotals.goals;
+
     List<PlayStat>? playStats = Model.PlayByPlay.Periods
         .SelectMany(x => x.PlayStats)
-        .Where(x => x.HomeText.Contains("Cardyellow(") || x.HomeText.Contains("Cardred(") || x.HomeText.Contains("Goal (")
-        || x.VisitorText.Contains("Cardyellow(") || x.VisitorText.Contains("Cardred(") || x.VisitorText.Contains("Goal ("))
+        .Where(x => x.HomeText.Contains("Cardyellow(") || x.HomeText.Contains("Cardred(") || x.HomeText.Contains("Goal (") || x.HomeText.Contains("Goal by") || x.HomeText.Contains("GOAL")
+        || x.VisitorText.Contains("Cardyellow(") || x.VisitorText.Contains("Cardred(") || x.VisitorText.Contains("Goal (") || x.VisitorText.Contains("Goal by") || x.VisitorText.Contains("GOAL"))
+        .OrderBy(x => x.Time)
         .ToList();
+        
 }
 
 <script src="https://kit.fontawesome.com/9cb16b74f0.js" crossorigin="anonymous"></script>
 
-
-<table class="table" align="center" style="text-align:center">
-    <thead>
-        <tr style="text-align:center">
-            <th>
-                <p style="text-align:center">
-                    <img src="@logoLink@homeTeam.seoName@(".svg")" width="150" />
-                </p>
-                <p style="text-align:center;color:@homeTeam.color">
-                    <b>
-                        @homeTeam.shortName @homeTeam.nickName
-                    </b>
-                </p>
-            </th>
-            <th>
-                <p style="text-align:center; font-size:xx-large">
-                    @homeTeam.playerTotals.goals - @awayTeam.playerTotals.goals
-                </p>
-                <p style="text-align:center;font-size:medium">
-                    @if (Model.GameInfo.meta.status == "Final")
-                    {
-                        @("FT")
-                    }
-                    else
-                    {
-                        @($"{Model.GameInfo.meta.minutes}:{Model.GameInfo.meta.seconds} (last updated)")
-                    }
-                </p>
-            </th>
-            <th>
-                <p style="text-align:center">
-                    <img src="@logoLink@awayTeam.seoName@(".svg")" width="150" />
-                </p>
-                <p style="text-align:center;color:@awayTeam.color">
-                    <b>
-                        @awayTeam.shortName @awayTeam.nickName
-                    </b>
-                </p>
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-</table>
-
-<div class="stats">
-    <table class="homePlayByPlay" style="float:left;width:30%">
-        <thead>
+<table align="center">
+    <tr style="text-align:center">
+        <th>
+            <p>
+                <img src="@logoLink@homeTeam.seoName@(".svg")" width="150" />
+            </p>
+            <p style="color:@homeTeam.color">
+                <b>
+                    @homeTeam.shortName @homeTeam.nickName
+                </b>
+            </p>
+        </th>
+        <th>
+            <p style="font-size:xx-large">
+                @score
+            </p>
+            <p style="font-size:large">
+                @if (Model.GameInfo.meta.status == "Final")
+                {
+                    @("FT")
+                }
+                else
+                {
+                    @($"{Model.GameInfo.meta.minutes}:{Model.GameInfo.meta.seconds} (last updated)")
+                }
+            </p>
+        </th>
+        <th>
+            <p>
+                <img src="@logoLink@awayTeam.seoName@(".svg")" width="150" />
+            </p>
+            <p style="color:@awayTeam.color">
+                <b>
+                    @awayTeam.shortName @awayTeam.nickName
+                </b>
+            </p>
+        </th>
+    </tr>
+    <tr style="text-align:center;">
+        <th style="width:">
             @foreach (var item in playStats.Where(x => !string.IsNullOrEmpty(x.HomeText)))
             {
                 var itemTime = string.Empty;
                 var timeSplit = item.Time.Split(':');
                 if (timeSplit[0] != "00")
                 {
-                    itemTime = $"{timeSplit[0].TrimStart('0')}:{timeSplit[1]}";
+                    itemTime = timeSplit[0].TrimStart('0') + ':' + timeSplit[1];
                     if (itemTime.Split(':')[1] != "00")
+                    {
                         itemTime = (int.Parse(itemTime.Split(':')[0]) + 1).ToString() + "'";
+                    }
                     else
+                    {
                         itemTime = itemTime.Split(':')[0] + "'";
+                    }
                 }
                 else
                 {
                     itemTime = "1'";
                 }
-                <tr>
-                    <td style="text-align:left">
-                        @{
-                            var playerName = item.HomeText.Split("by").Last();
-                            if (item.HomeText.Contains("Goal ("))
-                            {
-                                @(itemTime) <i class='fas fa-futbol' style="color:lawngreen"></i> @(playerName)
-                            }
-                            else if (item.HomeText.Contains("Cardyellow("))
-                            {
-                                @(itemTime) <i class="fas fa-square" style="color:yellow"></i> @(playerName)
-                            }
-                            else if (item.HomeText.Contains("Cardred("))
-                            {
-                                @(itemTime) <i class="fas fa-square" style="color:red"></i> @(playerName)
-                            }
-                        }
 
-                    </td>
-                </tr>
+                string playerName = string.Empty;
+                string assistText = string.Empty;
+                var threeCharAbbr = homeTeam.sixCharAbbr.Substring(0, 3);
+
+                if (item.HomeText.Contains($"by {threeCharAbbr}"))
+                {
+                    playerName = item.HomeText.Split($"by {threeCharAbbr}").Last();
+                }
+                else if (item.HomeText.Contains("by") && !item.HomeText.Contains(threeCharAbbr))
+                {
+                    playerName = item.HomeText.Split("by").Last();
+                }
+
+                if (playerName.Contains("Assist by"))
+                {
+                    assistText = $"{playerName.Split("Assist by").Last()}";
+                    playerName = playerName.Split("Assist by").First();
+                }
+
+                if (item.HomeText.Contains("Goal (") || item.HomeText.Contains("Goal by") || item.HomeText.Contains("GOAL"))
+                {
+                    @(itemTime) <i class="fas fa-futbol" style="color:lawngreen"></i> @(playerName) <br style="content:;margin-top:0" />
+                    if (!string.IsNullOrEmpty(assistText))
+                    {
+                        <span style="font-size:small">
+                            @(assistText)
+                            <br />
+                        </span>
+                    }
+                }
+                else if (item.HomeText.Contains("yellow"))
+                {
+                    @(itemTime) <i class="fas fa-square" style="color:yellow"></i> @(playerName) <br />
+                }
+                else if (item.HomeText.Contains("red"))
+                {
+                    @(itemTime) <i class="fas fa-square" style="color:red"></i> @(playerName) <br />
+                }
             }
-        </thead>
-    </table>
-    <table align="center" style="width:40%;float:left">
-        <tbody>
-            <tr style="text-align:center">
-                <td>
-                    @homeTeam.totalStats.shots<br />
-                    @homeTeam.totalStats.shotsOnGoal<br />
-                    @homeTeam.totalStats.saves<br />
-                    @homeTeam.totalStats.corners<br />
-                    @homeTeam.totalStats.offsides<br />
-                    @homeTeam.totalStats.fouls<br />
-                    @homeTeam.playerTotals.yellowCards<br />
-                    @homeTeam.playerTotals.redCards
-                </td>
-                <td>
-                    <b>
-                        Shots<br />
-                        Shots on goal<br />
-                        Goalkeeper saves<br />
-                        Corners<br />
-                        Offsides<br />
-                        Fouls<br />
-                        Yellow cards<br />
-                        Red cards
-                    </b>
-                </td>
-                <td>
-                    @awayTeam.totalStats.shots<br />
-                    @awayTeam.totalStats.shotsOnGoal<br />
-                    @awayTeam.totalStats.saves<br />
-                    @awayTeam.totalStats.corners<br />
-                    @awayTeam.totalStats.offsides<br />
-                    @awayTeam.totalStats.fouls<br />
-                    @awayTeam.playerTotals.yellowCards<br />
-                    @awayTeam.playerTotals.redCards
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="awayPlayByPlay" align="center" style="width:30%;float:left">
-        <thead>
+        </th>
+        <th>
+
+        </th>
+        <th style">
             @foreach (var item in playStats.Where(x => !string.IsNullOrEmpty(x.VisitorText)))
             {
                 var itemTime = string.Empty;
                 var timeSplit = item.Time.Split(':');
                 if (timeSplit[0] != "00")
                 {
-                    itemTime = $"{timeSplit[0].TrimStart('0')}:{timeSplit[1]}";
+                    itemTime = timeSplit[0].TrimStart('0') + ':' + timeSplit[1];
                     if (itemTime.Split(':')[1] != "00")
+                    {
                         itemTime = (int.Parse(itemTime.Split(':')[0]) + 1).ToString() + "'";
+                    }
                     else
+                    {
                         itemTime = itemTime.Split(':')[0] + "'";
+                    }
                 }
                 else
                 {
                     itemTime = "1'";
                 }
-                <tr>
-                    <td style="text-align:right">
-                        @{
-                            var playerName = item.VisitorText.Split("by").Last();
-                        }
-                        @if (item.VisitorText.Contains("Goal ("))
-                        {
-                            @playerName <i class="fas fa-futbol" style="color:lawngreen"></i> @itemTime
-                        }
-                        else if (item.VisitorText.Contains("Cardyellow("))
-                        {
-                            @playerName <i class="fas fa-square" style="color:yellow"></i> @itemTime
 
-                        }
-                        else if (item.VisitorText.Contains("Cardred("))
-                        {
-                            @playerName <i class="fas fa-square" style="color:red"></i> @itemTime
+                string playerName = string.Empty;
+                string assistText = string.Empty;
+                var threeCharAbbr = awayTeam.sixCharAbbr.Substring(0, 3);
 
-                        }
-                    </td>
-                </tr>
+                if (item.VisitorText.Contains($"by {threeCharAbbr}"))
+                {
+                    playerName = item.VisitorText.Split($"by {threeCharAbbr}").Last();
+                }
+                else if (item.VisitorText.Contains("by") && !item.VisitorText.Contains(threeCharAbbr))
+                {
+                    playerName = item.VisitorText.Split("by").Last();
+                }
+
+                if (playerName.Contains("Assist by"))
+                {
+                    assistText = $"assist by {playerName.Split("Assist by").Last()}";
+                    playerName = playerName.Split("Assist by").First();
+                }
+
+                var abbrCheck = playerName.Trim().Substring(0, 3);
+                if (abbrCheck.All(x => char.IsUpper(x)))
+                {
+                    playerName = playerName.Split(abbrCheck).Last();
+                }
+
+                if (item.VisitorText.Contains("Goal (") || item.VisitorText.Contains("Goal by") || item.VisitorText.Contains("GOAL"))
+                {
+                    @(playerName) <i class="fas fa-futbol" style="color:lawngreen"></i> @(itemTime) <br />
+                    if (!string.IsNullOrEmpty(assistText))
+                    {
+                        <span style="font-size:small">
+                            @(assistText)
+                            <br />
+                        </span>
+                    }
+                }
+                else if (item.VisitorText.Contains("yellow"))
+                {
+                    @(playerName) <i class="fas fa-square" style="color:yellow"></i> @(itemTime) <br />
+                }
+                else if (item.VisitorText.Contains("red"))
+                {
+                    @(playerName) <i class="fas fa-square" style="color:red"></i> @(itemTime) <br />
+                }
             }
-        </thead>
-    </table>
-</div>
+        </th>
+    </tr>
+    <tr style="text-align:center;padding-bottom:100px">
+        <th>
+            @homeTeam.totalStats.shots<br />
+            @homeTeam.totalStats.shotsOnGoal<br />
+            @homeTeam.totalStats.saves<br />
+            @homeTeam.totalStats.corners<br />
+            @homeTeam.totalStats.offsides<br />
+            @homeTeam.totalStats.fouls<br />
+            @homeTeam.playerTotals.yellowCards<br />
+            @homeTeam.playerTotals.redCards
+        </th>
+        <th>
+            Shots<br />
+            On goal<br />
+            Saves<br />
+            Corners<br />
+            Offsides<br />
+            Fouls<br />
+            Yellow<br />
+            Red
+        </th>
+        <th>
+            @awayTeam.totalStats.shots<br />
+            @awayTeam.totalStats.shotsOnGoal<br />
+            @awayTeam.totalStats.saves<br />
+            @awayTeam.totalStats.corners<br />
+            @awayTeam.totalStats.offsides<br />
+            @awayTeam.totalStats.fouls<br />
+            @awayTeam.playerTotals.yellowCards<br />
+            @awayTeam.playerTotals.redCards
+        </th>
+    </tr>
+</table>

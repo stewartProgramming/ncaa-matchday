@@ -7,7 +7,7 @@
             public required string Sport { get; set; }
             public required string Division { get; set; }
             public required string Link { get; set; }
-            public string? Sex { get; set; }
+            public required string Sex { get; set; }
         }
 
         public List<League> Leagues
@@ -21,22 +21,26 @@
             new League{
                 Sport = "Football",
                 Division = "Division I-A Football Bowl Subdivision",
-                Link = "football/fbs"
+                Link = "football/fbs",
+                Sex = "Men"
             },
             new League{
                 Sport = "Football",
                 Division = "Division I-B Football Championship Subdivision",
-                Link = "football/fcs"
+                Link = "football/fcs",
+                Sex = "Men"
             },
             new League{
                 Sport = "Football",
                 Division = "Division II",
-                Link = "football/d2"
+                Link = "football/d2",
+                Sex = "Men"
             },
             new League{
                 Sport = "Football",
                 Division = "Division III",
-                Link = "football/d3"
+                Link = "football/d3",
+                Sex = "Men"
             },
             new League{
                 Sport = "Basketball",
