@@ -17,7 +17,7 @@ namespace ncaa_matchday.Controllers
 
         public async Task<IActionResult> Matches(string leagueLink, string date, string? live)
         {
-            var dateParsed = DateTime.Now;
+            var dateParsed = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
             if (!string.IsNullOrEmpty(date))
                 dateParsed = DateTime.Parse(date);
 
