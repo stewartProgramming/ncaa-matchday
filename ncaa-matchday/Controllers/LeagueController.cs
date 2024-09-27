@@ -15,7 +15,7 @@ namespace ncaa_matchday.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Matches(string leagueLink, string date)
+        public async Task<IActionResult> Matches(string leagueLink, string date, string? live)
         {
             var dateParsed = DateTime.Now;
             if (!string.IsNullOrEmpty(date))

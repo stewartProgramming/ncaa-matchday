@@ -13,8 +13,8 @@
     </form>
 </div>
 
-
     @{
+        var testingz = Model.SelectMany(x => x.Games).Select(y => y.GameState).Distinct();
         var sexes = Model.Select(x => x.Sex).Distinct();
         var divisions = Model.Select(x => x.Division).Distinct();
     }
@@ -23,10 +23,14 @@
     {
         @foreach (string division in divisions)
         {
-        <button type="button" class="collapsible">
-            @(sex) - @(division[0] + division.Split(' ').Last())
-        </button>
-        <div class="content">
+            var matches = Model.Where(x => x.Division == division && x.Sex == sex);
+            var liveMatchCount = matches.SelectMany(x => x.Games).Where(y => y.GameState == "live").Count();
+            var totalMatchCount = matches.SelectMany(x => x.Games).Count();
+
+            <button type="button" class="collapsible">
+                @(sex) @(division[0] + division.Split(' ').Last()) - <span style="color:red;text-align:right">@liveMatchCount</span>/@totalMatchCount
+            </button>
+            <div class="content">
             <table align="center">
                 <tr>
                     <td style="text-align:center;">
@@ -36,7 +40,6 @@
             {
                 if (match.Games != null)
                 {
-
                     foreach (var game in match.Games)
                     {
                         ScoreboardTeam homeTeam = game.Home;
@@ -58,9 +61,29 @@
 
                         string startTime = game.StartTime.TrimStart('0');
                         if (game.FinalMessage == "FINAL" || game.GameState == "final")
+                        {
                             startTime = "FT";
+                        }
+                        else if (game.GameState == "suspended")
+                            {
+                                startTime = "Suspended";
+                            }
+                            else if (game.GameState == "live")
+                        {
+                            string[] contestClockSplit = game.ContestClock.Split(':');
+                            if (contestClockSplit.Last() == "00")
+                            {
+                                startTime = contestClockSplit.First();
+                            }
+                            else
+                            {
+                                startTime = (int.Parse(contestClockSplit.First()) + 1).ToString();
+                            }
+                        }
                         else
+                        {
                             startTime = startTime.Split(' ').First();
+                        }
 
                         string gameDate = DateTime.Parse(game.StartDate).ToString("MM/dd/yy").TrimStart('0');
                         string gameUrlNum = game.Url.Split('/').Last();
@@ -70,14 +93,21 @@
                             <td>
                                 <p style="text-align:center;padding-right:10px">
                                     @gameDate<br />
-                                    @startTime
+                                        @if (game.GameState == "live")
+                                        {
+                                            <span style="color:red">@startTime</span>
+                                        }
+                                        else
+                                        {
+                                            @startTime
+                                        }
                                 </p>
                             </td>
                             <td>
                                 <a asp-controller="Match" asp-action="Details" asp-route-gameId="@gameUrlNum" style="text-decoration:none;color:black">
                                     <p>
                                         <img src="@homeLogoLink" height="25" />
-                                        @if (homeScore > awayScore)
+                                        @if (homeScore > awayScore && game.GameState != "live")
                                         {
                                             <b>
                                                 @homeTeam.Names.Short
@@ -87,11 +117,18 @@
                                         else
                                         {
                                             @homeTeam.Names.Short
-                                            <span style="float:right;padding-left:25px">@homeTeam.Score</span>
+                                            if (game.GameState == "live")
+                                            {
+                                                <span style="float:right;padding-left:25px;color:red">@homeTeam.Score</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="float:right;padding-left:25px">@homeTeam.Score</span>
+                                            }
                                         }
                                         <br />
                                         <img src="@awayLogoLink" height="25" />
-                                        @if (awayScore > homeScore)
+                                        @if (awayScore > homeScore && game.GameState != "live")
                                         {
                                             <b>
                                                 @awayTeam.Names.Short
@@ -101,7 +138,14 @@
                                         else
                                         {
                                             @awayTeam.Names.Short
-                                            <span style="float:right;padding-left:25px">@awayTeam.Score</span>
+                                            if (game.GameState == "live")
+                                            {
+                                                <span style="float:right;padding-left:25px;color:red">@awayTeam.Score</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="float:right;padding-left:25px">@awayTeam.Score</span>
+                                            }
                                         }
                                     </p>
                                 </a>
